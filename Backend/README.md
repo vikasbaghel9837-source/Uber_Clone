@@ -139,3 +139,136 @@ curl -X POST http://localhost:PORT/users/register \
 - A JWT authentication token is returned upon successful registration.
 - The token can be used for subsequent authenticated requests.
 - The `lastname` field is optional but recommended.
+
+---
+
+## POST /users/login
+
+### Description
+This endpoint authenticates a user and returns a JWT authentication token. It validates the user's credentials (email and password), verifies the password, and issues a token for subsequent authenticated requests.
+
+### HTTP Method
+`POST`
+
+#### Request Body
+The request body must be a JSON object with the following fields:
+
+```json
+{
+  "email": "string",
+  "password": "string"
+}
+```
+
+#### Required Fields
+
+| Field | Type | Validation | Description |
+|-------|------|-----------|-------------|
+| `email` | string | Valid email format | User's registered email address |
+| `password` | string | Min 6 characters | User's password |
+
+### Response
+
+#### Success Response (200 OK)
+```json
+{
+  "success": true,
+  "message": "User Logged in Successfully",
+  "token": "jwt_token_string"
+}
+```
+
+**Status Code:** `200 OK`
+
+#### Error Response (400 Bad Request)
+```json
+{
+  "errors": [
+    {
+      "msg": "Error message",
+      "param": "field_name",
+      "location": "body"
+    }
+  ]
+}
+```
+
+**Status Code:** `400 Bad Request`
+
+#### Error Response (401 Unauthorized)
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+**Status Code:** `401 Unauthorized`
+
+### Validation Errors
+
+The following validation errors may be returned:
+
+| Error | Message | Condition | Status Code |
+|-------|---------|-----------|-------------|
+| Invalid Email | "Invalid Email" | Email format is not valid | 400 |
+| Invalid Password | "Password must be atleast 6 characters long" | Password is less than 6 characters | 400 |
+| Invalid Credentials | "Invalid email or password" | Email not found in database | 401 |
+| Wrong Password | "Invalid password" | Email exists but password doesn't match | 401 |
+
+### Example Request
+
+```bash
+curl -X POST http://localhost:PORT/users/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "email": "john@example.com",
+    "password": "password123"
+  }'
+```
+
+### Example Response (Success)
+
+```json
+{
+  "success": true,
+  "message": "User Logged in Successfully",
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+### Example Response (Invalid Credentials)
+
+```json
+{
+  "message": "Invalid email or password"
+}
+```
+
+### Example Response (Validation Error)
+
+```json
+{
+  "errors": [
+    {
+      "msg": "Invalid Email",
+      "param": "email",
+      "location": "body"
+    }
+  ]
+}
+```
+
+### Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | User successfully authenticated. Returns JWT token. |
+| `400` | Bad request. Validation failed or missing required fields. |
+| `401` | Unauthorized. Invalid email or password. |
+
+### Notes
+- The password is compared against the hashed password stored in the database.
+- A JWT authentication token is returned upon successful login.
+- This token should be included in the Authorization header for subsequent authenticated requests.
+- Both email and password must be correct to successfully authenticate.
+- The response does not include user data for security purposes.
