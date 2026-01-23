@@ -272,3 +272,218 @@ curl -X POST http://localhost:PORT/users/login \
 - This token should be included in the Authorization header for subsequent authenticated requests.
 - Both email and password must be correct to successfully authenticate.
 - The response does not include user data for security purposes.
+
+---
+
+## GET /users/profile
+
+### Description
+This endpoint retrieves the authenticated user's profile information. It requires a valid JWT token for authentication. The token can be passed via cookies or the Authorization header.
+
+### HTTP Method
+`GET`
+
+### Authentication
+**Required:** Yes
+
+The request must include one of the following:
+- Cookie: `token=jwt_token_string`
+- Header: `Authorization: Bearer jwt_token_string`
+
+### Request Headers
+```
+Authorization: Bearer jwt_token_string
+```
+
+or 
+
+```
+Cookie: token=jwt_token_string
+```
+
+### Response
+
+#### Success Response (200 OK)
+```json
+{
+  "_id": "user_id",
+  "fullname": {
+    "firstname": "John",
+    "lastname": "Doe"
+  },
+  "email": "john@example.com",
+  "createdAt": "2026-01-23T10:30:00.000Z",
+  "updatedAt": "2026-01-23T10:30:00.000Z"
+}
+```
+
+**Status Code:** `200 OK`
+
+#### Error Response (401 Unauthorized)
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+**Status Code:** `401 Unauthorized`
+
+### Error Scenarios
+
+| Scenario | Status Code | Response |
+|----------|-------------|----------|
+| No token provided | 401 | `{"message": "Unauthorized"}` |
+| Invalid/Expired token | 401 | `{"message": "Unauthorized"}` |
+| Token blacklisted (user logged out) | 401 | `{"message": "Unauthorized"}` |
+| Valid token | 200 | User profile data |
+
+### Example Request
+
+```bash
+curl -X GET http://localhost:PORT/users/profile \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+Or with cookie:
+
+```bash
+curl -X GET http://localhost:PORT/users/profile \
+  -H "Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+### Example Response (Success)
+
+```json
+{
+  "_id": "507f1f77bcf86cd799439011",
+  "fullname": {
+    "firstname": "John",
+    "lastname": "Doe"
+  },
+  "email": "john@example.com",
+  "createdAt": "2026-01-23T10:30:00.000Z",
+  "updatedAt": "2026-01-23T10:30:00.000Z"
+}
+```
+
+### Example Response (Unauthorized)
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+### Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Successfully retrieved user profile. |
+| `401` | Unauthorized. Invalid, expired, or missing token. |
+
+### Notes
+- This is a protected endpoint and requires authentication.
+- The JWT token must be valid and not blacklisted.
+- User data is retrieved from the authenticated user's session.
+- Password is not returned in the response for security purposes.
+
+---
+
+## GET /users/logout
+
+### Description
+This endpoint logs out the authenticated user by blacklisting their JWT token and clearing the authentication cookie. The blacklisted token becomes invalid for future requests.
+
+### HTTP Method
+`GET`
+
+### Authentication
+**Required:** Yes
+
+The request must include one of the following:
+- Cookie: `token=jwt_token_string`
+- Header: `Authorization: Bearer jwt_token_string`
+
+### Request Headers
+```
+Authorization: Bearer jwt_token_string
+```
+
+or 
+
+```
+Cookie: token=jwt_token_string
+```
+
+### Response
+
+#### Success Response (200 OK)
+```json
+{
+  "message": "Logged Out successfully"
+}
+```
+
+**Status Code:** `200 OK`
+
+#### Error Response (401 Unauthorized)
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+**Status Code:** `401 Unauthorized`
+
+### Error Scenarios
+
+| Scenario | Status Code | Response |
+|----------|-------------|----------|
+| No token provided | 401 | `{"message": "Unauthorized"}` |
+| Invalid/Expired token | 401 | `{"message": "Unauthorized"}` |
+| Valid token | 200 | `{"message": "Logged Out successfully"}` |
+
+### Example Request
+
+```bash
+curl -X GET http://localhost:PORT/users/logout \
+  -H "Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+Or with cookie:
+
+```bash
+curl -X GET http://localhost:PORT/users/logout \
+  -H "Cookie: token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+```
+
+### Example Response (Success)
+
+```json
+{
+  "message": "Logged Out successfully"
+}
+```
+
+### Example Response (Unauthorized)
+
+```json
+{
+  "message": "Unauthorized"
+}
+```
+
+### Status Codes
+
+| Code | Description |
+|------|-------------|
+| `200` | Successfully logged out. Token blacklisted. |
+| `401` | Unauthorized. Invalid, expired, or missing token. |
+
+### Notes
+- This is a protected endpoint and requires authentication.
+- The JWT token is added to a blacklist and becomes invalid for subsequent requests.
+- The authentication cookie is cleared from the client.
+- The token remains blacklisted for 24 hours in the database (TTL: 86400 seconds).
+- After logout, the user must login again to get a new token.
+- Both methods of token transmission (cookie and header) are supported.
