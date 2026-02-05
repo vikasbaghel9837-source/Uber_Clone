@@ -1,20 +1,33 @@
-import React, { useState } from 'react'
+import React, { useContext, useState } from 'react'
 import uberLogo from "../assets/Uber-logo.png"
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { UserDataContext } from '../context/UserContext';
+import axios from 'axios';
 
 const UserLogin = ()=>{
 
     const [email ,setEmail] = useState('');
     const [password ,setPassword] = useState('');
     const [userData , setUserData] = useState({});
+    const {user , setUser} = useContext(UserDataContext);
+    const navigate = useNavigate(); 
 
     const submitHandler = async (e)=>{
         e.preventDefault();
 
-        setUserData({
+        const userData = {
             email:email,
             password:password
-        })
+        };
+
+        const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/login` , userData);
+
+        if(response.status === 200){
+            const data = response.data;
+            setUser(data.user);
+            localStorage.setItem('token' , data.token);
+            navigate('/home')
+        }
 
         setEmail('');
         setPassword('');
@@ -50,13 +63,12 @@ const UserLogin = ()=>{
                     ></input>
 
                     <button className='bg-black rounded-md mt-6 text-white text-xl font-semibold p-2'>Login</button>
-
-                    <div className='flex justify-center mt-5'>
-                        <p className='text-xl font-semibold'>New here?</p>
-                        <pre>  </pre>
-                        <Link to={"/signup"} className='text-xl font-semibold text-blue-500'>Create new Account</Link>
-                    </div>
                 </form>
+                <div className='flex justify-center mt-5'>
+                    <p className='text-xl font-semibold'>New here?</p>
+                    <pre>  </pre>
+                    <Link to={"/signup"} className='text-xl font-semibold text-blue-500'>Create new Account</Link>
+                </div>
             </div>
 
             <div className='bg-green-600 flex justify-center rounded-md mt-6 text-white text-xl font-semibold p-3 mb-6'>

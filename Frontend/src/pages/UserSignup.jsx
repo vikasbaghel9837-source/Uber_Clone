@@ -14,12 +14,7 @@ const UserSignup = () => {
 
   const navigate = useNavigate()
 
-
-
   const { user, setUser } = useContext(UserDataContext)
-
-
-
 
   const submitHandler = async (e) => {
     e.preventDefault()
@@ -34,7 +29,7 @@ const UserSignup = () => {
 
     const response = await axios.post(`${import.meta.env.VITE_BASE_URL}/users/register`, newUser)
 
-    if (response.status === 201) {
+    if (response.status === 200) {
       const data = response.data
       setUser(data.user)
       localStorage.setItem('token', data.token)
